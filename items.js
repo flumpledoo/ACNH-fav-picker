@@ -299,7 +299,7 @@ var items = [
     {id: 'Raddle', personality: 'Lazy', image: 'images/Raddle.png'},
     {id: 'Rasher', personality: 'Cranky', image: 'images/Rasher.png'},
     {id: 'Raymond', personality: 'Smug', image: 'images/Raymond.png'},
-    {id: 'Renée', personality: 'Sisterly', image: 'images/Renée.png'},
+    {id: 'Renee', personality: 'Sisterly', image: 'images/Renee.png'},
     {id: 'Reneigh', personality: 'Sisterly', image: 'images/Reneigh.png'},
     {id: 'Rex', personality: 'Lazy', image: 'images/Rex.png'},
     {id: 'Rhonda', personality: 'Normal', image: 'images/Rhonda.png'},
