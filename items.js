@@ -381,7 +381,7 @@ var items = [
     {id: 'Wade', personality: 'Lazy', image: 'images/Wade.png'},
     {id: 'Walker', personality: 'Lazy', image: 'images/Walker.png'},
     {id: 'Walt', personality: 'Cranky', image: 'images/Walt.png'},
-    {id: 'Wart Jr.', personality: 'Cranky', image: 'images/Wart Jr..png'},
+    {id: 'Wart Jr.', personality: 'Cranky', image: 'images/Wart Jr.png'},
     {id: 'Weber', personality: 'Lazy', image: 'images/Weber.png'},
     {id: 'Wendy', personality: 'Peppy', image: 'images/Wendy.png'},
     {id: 'Winnie', personality: 'Peppy', image: 'images/Winnie.png'},
