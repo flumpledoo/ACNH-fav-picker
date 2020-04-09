@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0">
+<title>Favourite CSH Song Picker</title>
+<style>
+body {
+    background:#FFF;
+    color:#000;
+    font-family:verdana, sans-serif;
+    font-size:10pt;
+    margin:0;
+    padding:10px;
+}
+
+a:link, a:visited {
+    color:#008;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+a:active, a:hover {
+    color:#ACF;
+}
+
+.info {
+    font-weight:bold;
+}
+
+button {
+    font-family:inherit;
+    cursor:pointer;
+    border:0;
+    border-radius:3px;
+    padding:0.3em 0.5em;
+    background:#CCC;
+    color:#000;
+}
+
+button:hover {
+    background:#DDD;
+}
+
+button.disabled {
+    background:#DDD;
+    color:#888;
+    cursor:not-allowed;
+}
+
+button.disabled:hover {
+    background:#DDD;
+}
+
+#container {
+    position:relative;
+    margin-left:-10px;
+    margin-right:-10px;
+    padding:10px;
+    overflow:hidden;
+}
+
+@media (min-width:1024px) {
+    /* Put the found favorites beside the picking div when the window is sufficiently large */
+    #picking {
+        float:left;
+        width:636px;
+    }
+
+    #secondary {
+        margin-left:646px;
+    }
+}
+
+@media (min-width:1300px) {
+    /* Once we get to the point where 636px is less than half of the width of the screen, make the picking div just take up half */
+    #picking {
+        width:50%;
+    }
+
+    #secondary {
+        margin-left:51%;
+    }
+}
+
+#pick {
+    background:#58F;
+    color:#FFF;
+    font-size:10pt;
+    font-weight:bold;
+    width:6em;
+    border-radius:5px;
+    margin-right:10px;
+}
+
+#pick.disabled {
+    background:#ACF;
+}
+
+#pick:hover {
+    background:#ACF;
+}
+
+.item-list {
+    padding:0;
+    list-style-type:none;
+    line-height:100px;
+}
+
+.item-list li {
+    margin:0;
+    display:inline-block;
+    height:100px;
+    width:100px;
+    line-height:100px;
+    border:3px solid transparent;
+    text-align:center;
+    position:relative;
+    vertical-align:top;
+    overflow:hidden;
+    border-radius:100%;
+    background:#F7F7F7;
+    color:#000;
+}
+
+.item-list li img {
+    vertical-align:middle;
+    max-height:100%;
+    max-width:100%;
+}
+
+.item-list li span {
+    display:inline-block;
+    vertical-align:middle;
+    line-height:1.2;
+}
+
+@media (max-width:636px) {
+    .item-list {
+        line-height:75px;
+    }
+
+    .item-list li {
+        line-height:75px;
+        height:75px;
+        width:75px;
+    }
+}
+
+@media (max-width:423px) {
+    .item-list {
+        line-height:50px;
+    }
+
+    .item-list li {
+        line-height:50px;
+        height:50px;
+        width:50px;
+    }
+}
+
+#reset {
+    border: red solid 1px;
+    color: red;
+}
+
+
+#evaluating li {
+    cursor:pointer;
+}
+
+#favorites li {
+    cursor:move;
+}
+
+.item-list li:hover {
+    background:#CDF;
+}
+
+.item-list.sorting li:hover {
+    background:#F7F7F7;
+}
+
+#evaluating li.selected {
+    border:3px solid #7AC;
+}
+
+#evaluating, #buttons {
+    text-align:left;
+    margin:auto;
+}
+
+#evaluating li.notice {
+    width:auto;
+    height:auto;
+    max-width:260px;
+    margin:auto;
+    background:#F7F7F7;
+    border-radius:14px;
+    padding:30px 30px;
+    color:#000;
+    text-align:center;
+    line-height:1.4;
+    cursor:auto;
+    font-size:6pt;
+}
+
+#buttons {
+    margin-top:30px;
+    position:relative;
+    z-index:3;
+}
+
+.picker-info {
+    text-align:center;
+    font-size:smaller;
+}
+
+#progress-bar {
+    display: block;
+    margin: auto;
+    height: 15px;
+    width: 150px;
+    margin-top: 5px;
+    background: #CCC;
+}
+
+#progress-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: #58F;
+}
+</style>
+</head>
+<body>
+<h1>Car Seat Headrest Favourite Song Picker</h1>
+
+<p>Note: Songs appearing on multiple albums listed under the album of their first appearance.</p>
+
+<div id="container">
+
+<div id="picking">
+<ul id="evaluating" class="item-list">
+</ul>
+
+<p id="buttons"><button id="pick">Pick</button> <button id="pass">Pass</button> <button id="undo">Undo</button> <button id="redo">Redo</button> <button id="reset">Reset</button> </p>
+
+<div class="picker-info">
+    <p>Songs remaining to be eliminated before next favorite is found: <span id="remaining"></span></p>
+
+    <p>Progress towards next favorite: <span id="progress-bar"><span></span></span></p>
+</div>
+
+</div>
+
+<div id="secondary">
+    <p>Include Personalities:
+      <label><input type="checkbox" name="personalitys" class="personalitys" value="cranky"> Cranky</label>
+      <label><input type="checkbox" name="personalitys" class="personalitys" value="peppy"> Peppy</label>
+      <label><input type="checkbox" name="personalitys" class="personalitys" value="sisterly"> Sisterly</label>
+      <label><input type="checkbox" name="personalitys" class="personalitys" value="lazy"> Lazy</label>
+      <label><input type="checkbox" name="personalitys" class="personalitys" value="normal"> Normal</label>
+      <label><input type="checkbox" name="personalitys" class="personalitys" value="snooty"> Snooty</label>
+      <label><input type="checkbox" name="personalitys" class="personalitys" value="jock"> Jock</label>
+      <label><input type="checkbox" name="personalitys" class="personalitys" value="smug"> Smug</label>
+    </p>
+<h2>Found favorites</h2>
+
+<ol id="favorites" class="item-list">
+</ol>
+</div>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="picker.js"></script>
+<script src="picker-ui.js"></script>
+<script src='items.js'></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
+<script>
+'use strict';
+
+// var items = [
+//     // Define your items here
+//     {id: 'Admiral', personality: 'Cranky', image: 'images/Admiral.png'},
+//     {id: 'Agent S', personality: 'Peppy', image: 'images/Agent S.png'},
+//     {id: 'Agnes', personality: 'Sisterly', image: 'images/Agnes.png'},
+//     {id: 'Al', personality: 'Lazy', image: 'images/Al.png'},
+//     {id: 'Alfonso', personality: 'Lazy', image: 'images/Alfonso.png'},
+//     {id: 'Alice', personality: 'Normal', image: 'images/Alice.png'},
+//     {id: 'Alli', personality: 'Snooty', image: 'images/Alli.png'},
+//     {id: 'Amelia', personality: 'Snooty', image: 'images/Amelia.png'},
+//     {id: 'Anabelle', personality: 'Peppy', image: 'images/Anabelle.png'},
+//     {id: 'Anchovy', personality: 'Lazy', image: 'images/Anchovy.png'},
+//     {id: 'Ankha', personality: 'Snooty', image: 'images/Ankha.png'},
+//     {id: 'Angus', personality: 'Cranky', image: 'images/Angus.png'},
+//     {id: 'Anicotti', personality: 'Peppy', image: 'images/Anicotti.png'},
+//     {id: 'Annalisa', personality: 'Normal', image: 'images/Annalisa.png'},
+//     {id: 'Annalise', personality: 'Snooty', image: 'images/Annalise.png'},
+//     {id: 'Antonio', personality: 'Jock', image: 'images/Antonio.png'},
+//     {id: 'Apollo', personality: 'Cranky', image: 'images/Apollo.png'},
+//     {id: 'Apple', personality: 'Peppy', image: 'images/Apple.png'},
+//     {id: 'Astrid', personality: 'Snooty', image: 'images/Astrid.png'},
+//     {id: 'Audie', personality: 'Peppy', image: 'images/Audie.png'},
+//     {id: 'Aurora', personality: 'Normal', image: 'images/Aurora.png'},
+//     {id: 'Ava', personality: 'Normal', image: 'images/Ava.png'},
+//     {id: 'Avery', personality: 'Cranky', image: 'images/Avery.png'},
+//     {id: 'Axel', personality: 'Jock', image: 'images/Axel.png'},
+//     {id: 'Baabara', personality: 'Snooty', image: 'images/Baabara.png'},
+//     {id: 'Bam', personality: 'Jock', image: 'images/Bam.png'},
+//     {id: 'Bangle', personality: 'Peppy', image: 'images/Bangle.png'},
+//     {id: 'Barold', personality: 'Lazy', image: 'images/Barold.png'},
+//     {id: 'Beau', personality: 'Lazy', image: 'images/Beau.png'},
+//     {id: 'Bea', personality: 'Normal', image: 'images/Bea.png'},
+//     {id: 'Beardo', personality: 'Smug', image: 'images/Beardo.png'},
+//     {id: 'Becky', personality: 'Snooty', image: 'images/Becky.png'},
+//     {id: 'Bella', personality: 'Peppy', image: 'images/Bella.png'},
+//     {id: 'Benedict', personality: 'Lazy', image: 'images/Benedict.png'},
+//     {id: 'Benjamin', personality: 'Lazy', image: 'images/Benjamin.png'},
+//     {id: 'Bertha', personality: 'Normal', image: 'images/Bertha.png'},
+//     {id: 'Bettina', personality: 'Normal', image: 'images/Bettina.png'},
+//     {id: 'Bianca', personality: 'Peppy', image: 'images/Bianca.png'},
+//     {id: 'Biff', personality: 'Jock', image: 'images/Biff.png'}
+// ];
+
+// var items = [
+//     // Define your items here
+//     {id: 'Admiral', personality: 'Cranky', image: 'images/Admiral.png'},
+//     {id: 'Agent S', personality: 'Peppy', image: 'images/Agent S.png'},
+//     {id: 'Agnes', personality: 'Sisterly', image: 'images/Agnes.png'},
+//     {id: 'Al', personality: 'Lazy', image: 'images/Al.png'},
+//     {id: 'Alfonso', personality: 'Lazy', image: 'images/Alfonso.png'},
+//     {id: 'Alice', personality: 'Normal', image: 'images/Alice.png'},
+//     {id: 'Alli', personality: 'Snooty', image: 'images/Alli.png'},
+//     {id: 'Amelia', personality: 'Snooty', image: 'images/Amelia.png'},
+//     {id: 'Anabelle', personality: 'Peppy', image: 'images/Anabelle.png'},
+//     {id: 'Anchovy', personality: 'Lazy', image: 'images/Anchovy.png'},
+//     {id: 'Ankha', personality: 'Snooty', image: 'images/Ankha.png'},
+//     {id: 'Angus', personality: 'Cranky', image: 'images/Angus.png'},
+//     {id: 'Anicotti', personality: 'Peppy', image: 'images/Anicotti.png'},
+//     {id: 'Annalisa', personality: 'Normal', image: 'images/Annalisa.png'},
+//     {id: 'Annalise', personality: 'Snooty', image: 'images/Annalise.png'},
+//     {id: 'Antonio', personality: 'Jock', image: 'images/Antonio.png'},
+//     {id: 'Apollo', personality: 'Cranky', image: 'images/Apollo.png'},
+//     {id: 'Apple', personality: 'Peppy', image: 'images/Apple.png'},
+//     {id: 'Astrid', personality: 'Snooty', image: 'images/Astrid.png'},
+//     {id: 'Audie', personality: 'Peppy', image: 'images/Audie.png'},
+//     {id: 'Aurora', personality: 'Normal', image: 'images/Aurora.png'},
+//     {id: 'Ava', personality: 'Normal', image: 'images/Ava.png'},
+//     {id: 'Avery', personality: 'Cranky', image: 'images/Avery.png'},
+//     {id: 'Axel', personality: 'Jock', image: 'images/Axel.png'},
+//     {id: 'Baabara', personality: 'Snooty', image: 'images/Baabara.png'},
+//     {id: 'Bam', personality: 'Jock', image: 'images/Bam.png'},
+//     {id: 'Bangle', personality: 'Peppy', image: 'images/Bangle.png'},
+//     {id: 'Barold', personality: 'Lazy', image: 'images/Barold.png'},
+//     {id: 'Beau', personality: 'Lazy', image: 'images/Beau.png'},
+//     {id: 'Bea', personality: 'Normal', image: 'images/Bea.png'},
+//     {id: 'Beardo', personality: 'Smug', image: 'images/Beardo.png'},
+//     {id: 'Becky', personality: 'Snooty', image: 'images/Becky.png'},
+//     {id: 'Bella', personality: 'Peppy', image: 'images/Bella.png'},
+//     {id: 'Benedict', personality: 'Lazy', image: 'images/Benedict.png'},
+//     {id: 'Benjamin', personality: 'Lazy', image: 'images/Benjamin.png'},
+//     {id: 'Bertha', personality: 'Normal', image: 'images/Bertha.png'},
+//     {id: 'Bettina', personality: 'Normal', image: 'images/Bettina.png'},
+//     {id: 'Bianca', personality: 'Peppy', image: 'images/Bianca.png'},
+//     {id: 'Biff', personality: 'Jock', image: 'images/Biff.png'},
+//     {id: 'Big Top', personality: 'Lazy', image: 'images/Big Top.png'},
+//     {id: 'Bill', personality: 'Jock', image: 'images/Bill.png'},
+//     {id: 'Billy', personality: 'Jock', image: 'images/Billy.png'},
+//     {id: 'Biskit', personality: 'Lazy', image: 'images/Biskit.png'},
+//     {id: 'Bitty', personality: 'Snooty', image: 'images/Bitty.png'},
+//     {id: 'Blaire', personality: 'Snooty', image: 'images/Blaire.png'},
+//     {id: 'Blanche', personality: 'Snooty', image: 'images/Blanche.png'},
+//     {id: 'Bluebear', personality: 'Peppy', image: 'images/Bluebear.png'},
+//     {id: 'Bob', personality: 'Lazy', image: 'images/Bob.png'},
+//     {id: 'Bonbon', personality: 'Peppy', image: 'images/Bonbon.png'},
+//     {id: 'Bones', personality: 'Lazy', image: 'images/Bones.png'},
+//     {id: 'Boomer', personality: 'Lazy', image: 'images/Boomer.png'},
+//     {id: 'Boone', personality: 'Jock', image: 'images/Boone.png'},
+//     {id: 'Boots', personality: 'Jock', image: 'images/Boots.png'},
+//     {id: 'Boris', personality: 'Cranky', image: 'images/Boris.png'},
+//     {id: 'Boyd', personality: 'Cranky', image: 'images/Boyd.png'},
+//     {id: 'Bree', personality: 'Snooty', image: 'images/Bree.png'},
+//     {id: 'Broccolo', personality: 'Lazy', image: 'images/Broccolo.png'},
+//     {id: 'Bruce', personality: 'Cranky', image: 'images/Bruce.png'},
+//     {id: 'Broffina', personality: 'Snooty', image: 'images/Broffina.png'},
+//     {id: 'Bubbles', personality: 'Peppy', image: 'images/Bubbles.png'},
+//     {id: 'Buck', personality: 'Jock', image: 'images/Buck.png'},
+//     {id: 'Bud', personality: 'Jock', image: 'images/Bud.png'},
+//     {id: 'Bunnie', personality: 'Peppy', image: 'images/Bunnie.png'},
+//     {id: 'Butch', personality: 'Cranky', image: 'images/Butch.png'},
+//     {id: 'Buzz', personality: 'Cranky', image: 'images/Buzz.png'},
+//     {id: 'Cally', personality: 'Normal', image: 'images/Cally.png'},
+//     {id: 'Camofrog', personality: 'Cranky', image: 'images/Camofrog.png'},
+//     {id: 'Canberra', personality: 'Sisterly', image: 'images/Canberra.png'},
+//     {id: 'Candi', personality: 'Peppy', image: 'images/Candi.png'},
+//     {id: 'Carmen', personality: 'Peppy', image: 'images/Carmen.png'},
+//     {id: 'Caroline', personality: 'Normal', image: 'images/Caroline.png'},
+//     {id: 'Carrie', personality: 'Normal', image: 'images/Carrie.png'},
+//     {id: 'Cashmere', personality: 'Snooty', image: 'images/Cashmere.png'},
+//     {id: 'Celia', personality: 'Normal', image: 'images/Celia.png'},
+//     {id: 'Cesar', personality: 'Cranky', image: 'images/Cesar.png'},
+//     {id: 'Chadder', personality: 'Smug', image: 'images/Chadder.png'},
+//     {id: 'Charlise', personality: 'Sisterly', image: 'images/Charlise.png'},
+//     {id: 'Cheri', personality: 'Peppy', image: 'images/Cheri.png'},
+//     {id: 'Cherry', personality: 'Sisterly', image: 'images/Cherry.png'},
+//     {id: 'Chester', personality: 'Lazy', image: 'images/Chester.png'},
+//     {id: 'Chevre', personality: 'Normal', image: 'images/Chevre.png'},
+//     {id: 'Chief', personality: 'Cranky', image: 'images/Chief.png'},
+//     {id: 'Chops', personality: 'Smug', image: 'images/Chops.png'},
+//     {id: 'Chow', personality: 'Cranky', image: 'images/Chow.png'},
+//     {id: 'Chrissy', personality: 'Peppy', image: 'images/Chrissy.png'},
+//     {id: 'Claude', personality: 'Lazy', image: 'images/Claude.png'},
+//     {id: 'Claudia', personality: 'Snooty', image: 'images/Claudia.png'},
+//     {id: 'Clay', personality: 'Lazy', image: 'images/Clay.png'},
+//     {id: 'Cleo', personality: 'Snooty', image: 'images/Cleo.png'},
+//     {id: 'Clyde', personality: 'Lazy', image: 'images/Clyde.png'},
+//     {id: 'Coach', personality: 'Jock', image: 'images/Coach.png'},
+//     {id: 'Cobb', personality: 'Jock', image: 'images/Cobb.png'},
+//     {id: 'Coco', personality: 'Normal', image: 'images/Coco.png'},
+//     {id: 'Cole', personality: 'Lazy', image: 'images/Cole.png'},
+//     {id: 'Colton', personality: 'Smug', image: 'images/Colton.png'},
+//     {id: 'Cookie', personality: 'Peppy', image: 'images/Cookie.png'},
+//     {id: 'Cousteau', personality: 'Jock', image: 'images/Cousteau.png'},
+//     {id: 'Cranston', personality: 'Lazy', image: 'images/Cranston.png'},
+//     {id: 'Croque', personality: 'Cranky', image: 'images/Croque.png'},
+//     {id: 'Cube', personality: 'Lazy', image: 'images/Cube.png'},
+//     {id: 'Curlos', personality: 'Smug', image: 'images/Curlos.png'},
+//     {id: 'Curly', personality: 'Jock', image: 'images/Curly.png'},
+//     {id: 'Curt', personality: 'Cranky', image: 'images/Curt.png'},
+//     {id: 'Cyd', personality: 'Cranky', image: 'images/Cyd.png'},
+//     {id: 'Cyrano', personality: 'Cranky', image: 'images/Cyrano.png'},
+//     {id: 'Daisy', personality: 'Normal', image: 'images/Daisy.png'},
+//     {id: 'Deena', personality: 'Normal', image: 'images/Deena.png'},
+//     {id: 'Deirdre', personality: 'Sisterly', image: 'images/Deirdre.png'},
+//     {id: 'Del', personality: 'Cranky', image: 'images/Del.png'},
+//     {id: 'Deli', personality: 'Lazy', image: 'images/Deli.png'},
+//     {id: 'Derwin', personality: 'Lazy', image: 'images/Derwin.png'},
+//     {id: 'Diana', personality: 'Snooty', image: 'images/Diana.png'},
+//     {id: 'Diva', personality: 'Sisterly', image: 'images/Diva.png'},
+//     {id: 'Dizzy', personality: 'Lazy', image: 'images/Dizzy.png'},
+//     {id: 'Dobie', personality: 'Cranky', image: 'images/Dobie.png'},
+//     {id: 'Doc', personality: 'Lazy', image: 'images/Doc.png'},
+//     {id: 'Dom', personality: 'Jock', image: 'images/Dom.png'},
+//     {id: 'Dora', personality: 'Normal', image: 'images/Dora.png'},
+//     {id: 'Dotty', personality: 'Peppy', image: 'images/Dotty.png'},
+//     {id: 'Drago', personality: 'Lazy', image: 'images/Drago.png'},
+//     {id: 'Drake', personality: 'Lazy', image: 'images/Drake.png'},
+//     {id: 'Drift', personality: 'Jock', image: 'images/Drift.png'},
+//     {id: 'Ed', personality: 'Smug', image: 'images/Ed.png'},
+//     {id: 'Egbert', personality: 'Lazy', image: 'images/Egbert.png'},
+//     {id: 'Elise', personality: 'Snooty', image: 'images/Elise.png'},
+//     {id: 'Ellie', personality: 'Normal', image: 'images/Ellie.png'},
+//     {id: 'Elmer', personality: 'Lazy', image: 'images/Elmer.png'},
+//     {id: 'Eloise', personality: 'Snooty', image: 'images/Eloise.png'},
+//     {id: 'Elvis', personality: 'Cranky', image: 'images/Elvis.png'},
+//     {id: 'Erik', personality: 'Lazy', image: 'images/Erik.png'},
+//     {id: 'Eunice', personality: 'Normal', image: 'images/Eunice.png'},
+//     {id: 'Eugene', personality: 'Smug', image: 'images/Eugene.png'},
+//     {id: 'Fang', personality: 'Cranky', image: 'images/Fang.png'},
+//     {id: 'Fauna', personality: 'Normal', image: 'images/Fauna.png'},
+//     {id: 'Felicity', personality: 'Peppy', image: 'images/Felicity.png'},
+//     {id: 'Filbert', personality: 'Lazy', image: 'images/Filbert.png'},
+//     {id: 'Flip', personality: 'Jock', image: 'images/Flip.png'},
+//     {id: 'Flo', personality: 'Sisterly', image: 'images/Flo.png'},
+//     {id: 'Flora', personality: 'Peppy', image: 'images/Flora.png'},
+//     {id: 'Flurry', personality: 'Normal', image: 'images/Flurry.png'},
+//     {id: 'Francine', personality: 'Snooty', image: 'images/Francine.png'},
+//     {id: 'Frank', personality: 'Cranky', image: 'images/Frank.png'},
+//     {id: 'Freckles', personality: 'Peppy', image: 'images/Freckles.png'},
+//     {id: 'Freya', personality: 'Snooty', image: 'images/Freya.png'},
+//     {id: 'Friga', personality: 'Snooty', image: 'images/Friga.png'},
+//     {id: 'Frita', personality: 'Sisterly', image: 'images/Frita.png'},
+//     {id: 'Frobert', personality: 'Jock', image: 'images/Frobert.png'},
+//     {id: 'Fuchsia', personality: 'Sisterly', image: 'images/Fuchsia.png'},
+//     {id: 'Gabi', personality: 'Peppy', image: 'images/Gabi.png'},
+//     {id: 'Gala', personality: 'Normal', image: 'images/Gala.png'},
+//     {id: 'Gaston', personality: 'Cranky', image: 'images/Gaston.png'},
+//     {id: 'Gayle', personality: 'Normal', image: 'images/Gayle.png'},
+//     {id: 'Genji', personality: 'Jock', image: 'images/Genji.png'},
+//     {id: 'Gigi', personality: 'Snooty', image: 'images/Gigi.png'},
+//     {id: 'Gladys', personality: 'Normal', image: 'images/Gladys.png'},
+//     {id: 'Gloria', personality: 'Snooty', image: 'images/Gloria.png'},
+//     {id: 'Goldie', personality: 'Normal', image: 'images/Goldie.png'},
+//     {id: 'Gonzo', personality: 'Cranky', image: 'images/Gonzo.png'},
+//     {id: 'Goose', personality: 'Jock', image: 'images/Goose.png'},
+//     {id: 'Graham', personality: 'Smug', image: 'images/Graham.png'},
+//     {id: 'Greta', personality: 'Snooty', image: 'images/Greta.png'},
+//     {id: 'Grizzly', personality: 'Cranky', image: 'images/Grizzly.png'},
+//     {id: 'Groucho', personality: 'Cranky', image: 'images/Groucho.png'},
+//     {id: 'Gruff', personality: 'Cranky', image: 'images/Gruff.png'},
+//     {id: 'Gwen', personality: 'Snooty', image: 'images/Gwen.png'},
+//     {id: 'Hamlet', personality: 'Jock', image: 'images/Hamlet.png'},
+//     {id: 'Hamphrey', personality: 'Cranky', image: 'images/Hamphrey.png'},
+//     {id: 'Hans', personality: 'Smug', image: 'images/Hans.png'},
+//     {id: 'Harry', personality: 'Cranky', image: 'images/Harry.png'},
+//     {id: 'Hazel', personality: 'Sisterly', image: 'images/Hazel.png'},
+//     {id: 'Henry', personality: 'Smug', image: 'images/Henry.png'},
+//     {id: 'Hippeux', personality: 'Smug', image: 'images/Hippeux.png'},
+//     {id: 'Hopkins', personality: 'Lazy', image: 'images/Hopkins.png'},
+//     {id: 'Hopper', personality: 'Cranky', image: 'images/Hopper.png'},
+//     {id: 'Hornsby', personality: 'Lazy', image: 'images/Hornsby.png'},
+//     {id: 'Huck', personality: 'Smug', image: 'images/Huck.png'},
+//     {id: 'Hugh', personality: 'Lazy', image: 'images/Hugh.png'},
+//     {id: 'Iggly', personality: 'Jock', image: 'images/Iggly.png'},
+//     {id: 'Ike', personality: 'Cranky', image: 'images/Ike.png'},
+//     {id: 'Jakey', personality: 'Lazy', image: 'images/Jakey.png'},
+//     {id: 'Jacques', personality: 'Smug', image: 'images/Jacques.png'},
+//     {id: 'Jambette', personality: 'Normal', image: 'images/Jambette.png'},
+//     {id: 'Jay', personality: 'Jock', image: 'images/Jay.png'},
+//     {id: 'Jeremiah', personality: 'Lazy', image: 'images/Jeremiah.png'},
+//     {id: 'Jitters', personality: 'Jock', image: 'images/Jitters.png'},
+//     {id: 'Joey', personality: 'Lazy', image: 'images/Joey.png'},
+//     {id: 'Judy', personality: 'Snooty', image: 'images/Judy.png'},
+//     {id: 'Julia', personality: 'Snooty', image: 'images/Julia.png'},
+//     {id: 'Julian', personality: 'Smug', image: 'images/Julian.png'},
+//     {id: 'June', personality: 'Normal', image: 'images/June.png'},
+//     {id: 'Kabuki', personality: 'Cranky', image: 'images/Kabuki.png'},
+//     {id: 'Katt', personality: 'Sisterly', image: 'images/Katt.png'},
+//     {id: 'Keaton', personality: 'Smug', image: 'images/Keaton.png'},
+//     {id: 'Ken', personality: 'Smug', image: 'images/Ken.png'},
+//     {id: 'Ketchup', personality: 'Peppy', image: 'images/Ketchup.png'},
+//     {id: 'Kevin', personality: 'Jock', image: 'images/Kevin.png'},
+//     {id: 'Kid Cat', personality: 'Jock', image: 'images/Kid Cat.png'},
+//     {id: 'Kidd', personality: 'Smug', image: 'images/Kidd.png'},
+//     {id: 'Kiki', personality: 'Normal', image: 'images/Kiki.png'},
+//     {id: 'Kitt', personality: 'Normal', image: 'images/Kitt.png'},
+//     {id: 'Kitty', personality: 'Snooty', image: 'images/Kitty.png'},
+//     {id: 'Klaus', personality: 'Smug', image: 'images/Klaus.png'},
+//     {id: 'Knox', personality: 'Cranky', image: 'images/Knox.png'},
+//     {id: 'Kody', personality: 'Jock', image: 'images/Kody.png'},
+//     {id: 'Kyle', personality: 'Smug', image: 'images/Kyle.png'},
+//     {id: 'Leonardo', personality: 'Jock', image: 'images/Leonardo.png'},
+//     {id: 'Leopold', personality: 'Smug', image: 'images/Leopold.png'},
+//     {id: 'Lily', personality: 'Normal', image: 'images/Lily.png'},
+//     {id: 'Limberg', personality: 'Cranky', image: 'images/Limberg.png'},
+//     {id: 'Lionel', personality: 'Smug', image: 'images/Lionel.png'},
+//     {id: 'Lobo', personality: 'Cranky', image: 'images/Lobo.png'},
+//     {id: 'Lolly', personality: 'Normal', image: 'images/Lolly.png'},
+//     {id: 'Lopez', personality: 'Smug', image: 'images/Lopez.png'},
+//     {id: 'Louie', personality: 'Jock', image: 'images/Louie.png'},
+//     {id: 'Lucha', personality: 'Smug', image: 'images/Lucha.png'},
+//     {id: 'Lucky', personality: 'Lazy', image: 'images/Lucky.png'},
+//     {id: 'Lucy', personality: 'Normal', image: 'images/Lucy.png'},
+//     {id: 'Lyman', personality: 'Jock', image: 'images/Lyman.png'},
+//     {id: 'Mac', personality: 'Jock', image: 'images/Mac.png'},
+//     {id: 'Maddie', personality: 'Peppy', image: 'images/Maddie.png'},
+//     {id: 'Maelle', personality: 'Snooty', image: 'images/Maelle.png'},
+//     {id: 'Maggie', personality: 'Normal', image: 'images/Maggie.png'},
+//     {id: 'Mallary', personality: 'Snooty', image: 'images/Mallary.png'},
+//     {id: 'Maple', personality: 'Normal', image: 'images/Maple.png'},
+//     {id: 'Margie', personality: 'Normal', image: 'images/Margie.png'},
+//     {id: 'Marcel', personality: 'Lazy', image: 'images/Marcel.png'},
+//     {id: 'Marcie', personality: 'Normal', image: 'images/Marcie.png'},
+//     {id: 'Marina', personality: 'Normal', image: 'images/Marina.png'},
+//     {id: 'Marshal', personality: 'Smug', image: 'images/Marshal.png'},
+//     {id: 'Mathilda', personality: 'Snooty', image: 'images/Mathilda.png'},
+//     {id: 'Megan', personality: 'Normal', image: 'images/Megan.png'},
+//     {id: 'Melba', personality: 'Normal', image: 'images/Melba.png'},
+//     {id: 'Merengue', personality: 'Normal', image: 'images/Merengue.png'},
+//     {id: 'Merry', personality: 'Peppy', image: 'images/Merry.png'},
+//     {id: 'Midge', personality: 'Normal', image: 'images/Midge.png'},
+//     {id: 'Mint', personality: 'Snooty', image: 'images/Mint.png'},
+//     {id: 'Mira', personality: 'Sisterly', image: 'images/Mira.png'},
+//     {id: 'Miranda', personality: 'Snooty', image: 'images/Miranda.png'},
+//     {id: 'Mitzi', personality: 'Normal', image: 'images/Mitzi.png'},
+//     {id: 'Moe', personality: 'Lazy', image: 'images/Moe.png'},
+//     {id: 'Molly', personality: 'Normal', image: 'images/Molly.png'},
+//     {id: 'Monique', personality: 'Snooty', image: 'images/Monique.png'},
+//     {id: 'Monty', personality: 'Cranky', image: 'images/Monty.png'},
+//     {id: 'Moose', personality: 'Jock', image: 'images/Moose.png'},
+//     {id: 'Mott', personality: 'Jock', image: 'images/Mott.png'},
+//     {id: 'Muffy', personality: 'Sisterly', image: 'images/Muffy.png'},
+//     {id: 'Murphy', personality: 'Cranky', image: 'images/Murphy.png'},
+//     {id: 'Nan', personality: 'Normal', image: 'images/Nan.png'},
+//     {id: 'Nana', personality: 'Normal', image: 'images/Nana.png'},
+//     {id: 'Naomi', personality: 'Snooty', image: 'images/Naomi.png'},
+//     {id: 'Nate', personality: 'Lazy', image: 'images/Nate.png'},
+//     {id: 'Nibbles', personality: 'Peppy', image: 'images/Nibbles.png'},
+//     {id: 'Norma', personality: 'Normal', image: 'images/Norma.png'},
+//     {id: 'Octavian', personality: 'Cranky', image: 'images/Octavian.png'},
+//     {id: 'O\'Hare', personality: 'Smug', image: 'images/O\'Hare.png'},
+//     {id: 'Olaf', personality: 'Smug', image: 'images/Olaf.png'},
+//     {id: 'Olive', personality: 'Normal', image: 'images/Olive.png'},
+//     {id: 'Olivia', personality: 'Snooty', image: 'images/Olivia.png'},
+//     {id: 'Opal', personality: 'Snooty', image: 'images/Opal.png'},
+//     {id: 'Ozzie', personality: 'Lazy', image: 'images/Ozzie.png'},
+//     {id: 'Pancetti', personality: 'Snooty', image: 'images/Pancetti.png'},
+//     {id: 'Pango', personality: 'Peppy', image: 'images/Pango.png'},
+//     {id: 'Papi', personality: 'Lazy', image: 'images/Papi.png'},
+//     {id: 'Paolo', personality: 'Lazy', image: 'images/Paolo.png'},
+//     {id: 'Pashmina', personality: 'Sisterly', image: 'images/Pashmina.png'},
+//     {id: 'Pate', personality: 'Peppy', image: 'images/Pate.png'},
+//     {id: 'Patty', personality: 'Peppy', image: 'images/Patty.png'},
+//     {id: 'Paula', personality: 'Sisterly', image: 'images/Paula.png'},
+//     {id: 'Peaches', personality: 'Normal', image: 'images/Peaches.png'},
+//     {id: 'Peanut', personality: 'Peppy', image: 'images/Peanut.png'},
+//     {id: 'Pecan ', personality: 'Snooty', image: 'images/Pecan .png'},
+//     {id: 'Peck', personality: 'Jock', image: 'images/Peck.png'},
+//     {id: 'Peewee', personality: 'Cranky', image: 'images/Peewee.png'},
+//     {id: 'Peggy', personality: 'Peppy', image: 'images/Peggy.png'},
+//     {id: 'Pekoe', personality: 'Normal', image: 'images/Pekoe.png'},
+//     {id: 'Penelope', personality: 'Peppy', image: 'images/Penelope.png'},
+//     {id: 'Phil', personality: 'Smug', image: 'images/Phil.png'},
+//     {id: 'Phoebe', personality: 'Sisterly', image: 'images/Phoebe.png'},
+//     {id: 'Pierce', personality: 'Jock', image: 'images/Pierce.png'},
+//     {id: 'Pietro', personality: 'Smug', image: 'images/Pietro.png'},
+//     {id: 'Pinky', personality: 'Peppy', image: 'images/Pinky.png'},
+//     {id: 'Piper', personality: 'Peppy', image: 'images/Piper.png'},
+//     {id: 'Pippy', personality: 'Peppy', image: 'images/Pippy.png'},
+//     {id: 'Plucky', personality: 'Sisterly', image: 'images/Plucky.png'},
+//     {id: 'Pompom', personality: 'Peppy', image: 'images/Pompom.png'},
+//     {id: 'Poncho', personality: 'Jock', image: 'images/Poncho.png'},
+//     {id: 'Poppy', personality: 'Normal', image: 'images/Poppy.png'},
+//     {id: 'Portia', personality: 'Snooty', image: 'images/Portia.png'},
+//     {id: 'Prince', personality: 'Lazy', image: 'images/Prince.png'},
+//     {id: 'Puck', personality: 'Lazy', image: 'images/Puck.png'},
+//     {id: 'Puddles', personality: 'Peppy', image: 'images/Puddles.png'},
+//     {id: 'Pudge', personality: 'Lazy', image: 'images/Pudge.png'},
+//     {id: 'Punchy', personality: 'Lazy', image: 'images/Punchy.png'},
+//     {id: 'Purrl', personality: 'Snooty', image: 'images/Purrl.png'},
+//     {id: 'Queenie', personality: 'Snooty', image: 'images/Queenie.png'},
+//     {id: 'Quillson', personality: 'Smug', image: 'images/Quillson.png'},
+//     {id: 'Raddle', personality: 'Lazy', image: 'images/Raddle.png'},
+//     {id: 'Rasher', personality: 'Cranky', image: 'images/Rasher.png'},
+//     {id: 'Raymond', personality: 'Smug', image: 'images/Raymond.png'},
+//     {id: 'Renee', personality: 'Sisterly', image: 'images/Renee.png'},
+//     {id: 'Reneigh', personality: 'Sisterly', image: 'images/Reneigh.png'},
+//     {id: 'Rex', personality: 'Lazy', image: 'images/Rex.png'},
+//     {id: 'Rhonda', personality: 'Normal', image: 'images/Rhonda.png'},
+//     {id: 'Ribbot', personality: 'Jock', image: 'images/Ribbot.png'},
+//     {id: 'Ricky', personality: 'Cranky', image: 'images/Ricky.png'},
+//     {id: 'Rizzo', personality: 'Cranky', image: 'images/Rizzo.png'},
+//     {id: 'Roald', personality: 'Jock', image: 'images/Roald.png'},
+//     {id: 'Robin', personality: 'Snooty', image: 'images/Robin.png'},
+//     {id: 'Rocco', personality: 'Cranky', image: 'images/Rocco.png'},
+//     {id: 'Rocket', personality: 'Sisterly', image: 'images/Rocket.png'},
+//     {id: 'Rod', personality: 'Jock', image: 'images/Rod.png'},
+//     {id: 'Rodeo', personality: 'Lazy', image: 'images/Rodeo.png'},
+//     {id: 'Rodney', personality: 'Smug', image: 'images/Rodney.png'},
+//     {id: 'Rolf', personality: 'Cranky', image: 'images/Rolf.png'},
+//     {id: 'Rooney', personality: 'Cranky', image: 'images/Rooney.png'},
+//     {id: 'Rory', personality: 'Jock', image: 'images/Rory.png'},
+//     {id: 'Roscoe', personality: 'Cranky', image: 'images/Roscoe.png'},
+//     {id: 'Rosie', personality: 'Peppy', image: 'images/Rosie.png'},
+//     {id: 'Rowan', personality: 'Jock', image: 'images/Rowan.png'},
+//     {id: 'Ruby', personality: 'Peppy', image: 'images/Ruby.png'},
+//     {id: 'Rudy', personality: 'Jock', image: 'images/Rudy.png'},
+//     {id: 'Sally', personality: 'Normal', image: 'images/Sally.png'},
+//     {id: 'Samson', personality: 'Jock', image: 'images/Samson.png'},
+//     {id: 'Sandy', personality: 'Normal', image: 'images/Sandy.png'},
+//     {id: 'Savannah', personality: 'Normal', image: 'images/Savannah.png'},
+//     {id: 'Scoot', personality: 'Jock', image: 'images/Scoot.png'},
+//     {id: 'Shari', personality: 'Sisterly', image: 'images/Shari.png'},
+//     {id: 'Sheldon', personality: 'Jock', image: 'images/Sheldon.png'},
+//     {id: 'Shep', personality: 'Smug', image: 'images/Shep.png'},
+//     {id: 'Sherb', personality: 'Lazy', image: 'images/Sherb.png'},
+//     {id: 'Simon', personality: 'Lazy', image: 'images/Simon.png'},
+//     {id: 'Skye', personality: 'Normal', image: 'images/Skye.png'},
+//     {id: 'Sly', personality: 'Jock', image: 'images/Sly.png'},
+//     {id: 'Snake', personality: 'Jock', image: 'images/Snake.png'},
+//     {id: 'Snooty', personality: 'Snooty', image: 'images/Snooty.png'},
+//     {id: 'Soleil', personality: 'Snooty', image: 'images/Soleil.png'},
+//     {id: 'Sparro', personality: 'Jock', image: 'images/Sparro.png'},
+//     {id: 'Spike', personality: 'Cranky', image: 'images/Spike.png'},
+//     {id: 'Spork', personality: 'Lazy', image: 'images/Spork.png'},
+//     {id: 'Sprinkle', personality: 'Peppy', image: 'images/Sprinkle.png'},
+//     {id: 'Sprocket', personality: 'Jock', image: 'images/Sprocket.png'},
+//     {id: 'Static', personality: 'Cranky', image: 'images/Static.png'},
+//     {id: 'Stella', personality: 'Normal', image: 'images/Stella.png'},
+//     {id: 'Sterling', personality: 'Jock', image: 'images/Sterling.png'},
+//     {id: 'Stinky', personality: 'Jock', image: 'images/Stinky.png'},
+//     {id: 'Stitches', personality: 'Lazy', image: 'images/Stitches.png'},
+//     {id: 'Stu', personality: 'Lazy', image: 'images/Stu.png'},
+//     {id: 'Sydney', personality: 'Normal', image: 'images/Sydney.png'},
+//     {id: 'Sylvana', personality: 'Normal', image: 'images/Sylvana.png'},
+//     {id: 'Sylvia', personality: 'Sisterly', image: 'images/Sylvia.png'},
+//     {id: 'Tabby', personality: 'Peppy', image: 'images/Tabby.png'},
+//     {id: 'Tad', personality: 'Jock', image: 'images/Tad.png'},
+//     {id: 'Tammi', personality: 'Peppy', image: 'images/Tammi.png'},
+//     {id: 'Tammy', personality: 'Sisterly', image: 'images/Tammy.png'},
+//     {id: 'Tangy', personality: 'Peppy', image: 'images/Tangy.png'},
+//     {id: 'Tank', personality: 'Jock', image: 'images/Tank.png'},
+//     {id: 'T-Bone', personality: 'Cranky', image: 'images/T-Bone.png'},
+//     {id: 'Tasha', personality: 'Snooty', image: 'images/Tasha.png'},
+//     {id: 'Teddy', personality: 'Jock', image: 'images/Teddy.png'},
+//     {id: 'Tex', personality: 'Smug', image: 'images/Tex.png'},
+//     {id: 'Tia', personality: 'Normal', image: 'images/Tia.png'},
+//     {id: 'Tiffany', personality: 'Snooty', image: 'images/Tiffany.png'},
+//     {id: 'Timbra', personality: 'Snooty', image: 'images/Timbra.png'},
+//     {id: 'Tipper', personality: 'Snooty', image: 'images/Tipper.png'},
+//     {id: 'Tom', personality: 'Cranky', image: 'images/Tom.png'},
+//     {id: 'Truffles', personality: 'Peppy', image: 'images/Truffles.png'},
+//     {id: 'Tucker', personality: 'Lazy', image: 'images/Tucker.png'},
+//     {id: 'Tutu', personality: 'Peppy', image: 'images/Tutu.png'},
+//     {id: 'Twiggy', personality: 'Peppy', image: 'images/Twiggy.png'},
+//     {id: 'Tybalt', personality: 'Jock', image: 'images/Tybalt.png'},
+//     {id: 'Ursala', personality: 'Sisterly', image: 'images/Ursala.png'},
+//     {id: 'Velma', personality: 'Snooty', image: 'images/Velma.png'},
+//     {id: 'Vesta', personality: 'Normal', image: 'images/Vesta.png'},
+//     {id: 'Vic', personality: 'Cranky', image: 'images/Vic.png'},
+//     {id: 'Victoria', personality: 'Peppy', image: 'images/Victoria.png'},
+//     {id: 'Violet', personality: 'Snooty', image: 'images/Violet.png'},
+//     {id: 'Vivian', personality: 'Snooty', image: 'images/Vivian.png'},
+//     {id: 'Vladimir', personality: 'Cranky', image: 'images/Vladimir.png'},
+//     {id: 'Wade', personality: 'Lazy', image: 'images/Wade.png'},
+//     {id: 'Walker', personality: 'Lazy', image: 'images/Walker.png'},
+//     {id: 'Walt', personality: 'Cranky', image: 'images/Walt.png'},
+//     {id: 'Wart Jr.', personality: 'Cranky', image: 'images/Wart Jr..png'},
+//     {id: 'Weber', personality: 'Lazy', image: 'images/Weber.png'},
+//     {id: 'Wendy', personality: 'Peppy', image: 'images/Wendy.png'},
+//     {id: 'Winnie', personality: 'Peppy', image: 'images/Winnie.png'},
+//     {id: 'Whitney', personality: 'Snooty', image: 'images/Whitney.png'},
+//     {id: 'Willow', personality: 'Snooty', image: 'images/Willow.png'},
+//     {id: 'Wolfgang', personality: 'Cranky', image: 'images/Wolfgang.png'},
+//     {id: 'Yuka', personality: 'Snooty', image: 'images/Yuka.png'},
+//     {id: 'Zell', personality: 'Smug', image: 'images/Zell.png'},
+//     {id: 'Zucker', personality: 'Lazy', image: 'images/Zucker.png'}
+// ];
+
+
+var myPicker = new picker.Picker({
+    items: items,
+    localStorageKey: 'csh-state',
+    // defaultSettings: {
+    //     albums: ['myback', 'tf', 'htlt', 'mono', 'nym', 'tod']
+    // },
+    shouldIncludeItem: function(item, settings) {
+        // return settings.albums.indexOf(item.album) !== -1;
+        return true;
+    }
+});
+
+var pickerUI = new PickerUI(myPicker, {
+    elements: {
+        pick: "#pick",
+        pass: "#pass",
+        undo: "#undo",
+        redo: "#redo",
+        reset: "#reset",
+        evaluating: "#evaluating",
+        favorites: "#favorites",
+        // settings: {
+        //   albums: '.albums'
+        // }
+    },
+    onUpdate: function(updateType) {
+        var total = this.picker.state.items.length;
+        var favorites = this.picker.state.arrays.favorites.length;
+        var eliminated = this.picker.state.arrays.eliminated.length;
+        var remaining = Math.max(0, total - favorites - eliminated - 1);
+
+        $("#remaining").text(remaining);
+
+        updateProgressBar((1 - (remaining / this.picker.state.roundSize)) * 100, updateType);
+    }
+});
+
+pickerUI.initialize();
+
+/* PROGRESS BAR */
+
+function updateProgressBar(value, updateType) {
+    var $progressBar = $("#progress-bar span");
+
+    if (['pick', 'undo', 'redo'].indexOf(updateType) !== -1) {
+        if (!value && updateType !== 'undo') {
+            $progressBar.animate({ width: '100%' }, 400, function () {
+                $progressBar.width(0);
+            });
+        } else {
+            if (!$progressBar.width() && updateType === 'undo') {
+                $progressBar.width("100%")
+            }
+            $progressBar.animate({ width: value + '%' }, 400);
+        }
+    } else {
+        $progressBar.width(value + '%');
+    }
+}
+
+/* Sortable favorites - you can safely remove this, and the Sortable.min.js script, if you don't want to be able to sort your favorite list. */
+var sortable = new Sortable(pickerUI.elem.favorites.get(0), {
+    draggable: '.item',
+    animation: 100,
+    onStart: function() {
+        pickerUI.elem.favorites.addClass("sorting");
+    },
+    onEnd: function() {
+        pickerUI.elem.favorites.removeClass("sorting");
+    },
+    onUpdate: function() {
+        myPicker.setFavorites(pickerUI.elem.favorites.children().map(function() {
+            return pickerUI.getItem(this);
+        }).get());
+        pickerUI.update(true);
+    }
+});
+/* End sortable favorites */
+
+
+</script>
+</body>
+</html>
