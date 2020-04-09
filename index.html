@@ -275,7 +275,7 @@ button.disabled:hover {
 <script src="picker.js"></script>
 <script src="picker-ui.js"></script>
 <script src="items.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script> -->
 <script>
 'use strict';
 
@@ -340,22 +340,22 @@ function updateProgressBar(value, updateType) {
 }
 
 /* Sortable favorites - you can safely remove this, and the Sortable.min.js script, if you don't want to be able to sort your favorite list. */
-var sortable = new Sortable(pickerUI.elem.favorites.get(0), {
-    draggable: '.item',
-    animation: 100,
-    onStart: function() {
-        pickerUI.elem.favorites.addClass("sorting");
-    },
-    onEnd: function() {
-        pickerUI.elem.favorites.removeClass("sorting");
-    },
-    onUpdate: function() {
-        myPicker.setFavorites(pickerUI.elem.favorites.children().map(function() {
-            return pickerUI.getItem(this);
-        }).get());
-        pickerUI.update(true);
-    }
-});
+// var sortable = new Sortable(pickerUI.elem.favorites.get(0), {
+//     draggable: '.item',
+//     animation: 100,
+//     onStart: function() {
+//         pickerUI.elem.favorites.addClass("sorting");
+//     },
+//     onEnd: function() {
+//         pickerUI.elem.favorites.removeClass("sorting");
+//     },
+//     onUpdate: function() {
+//         myPicker.setFavorites(pickerUI.elem.favorites.children().map(function() {
+//             return pickerUI.getItem(this);
+//         }).get());
+//         pickerUI.update(true);
+//     }
+// });
 /* End sortable favorites */
 
 </script>
