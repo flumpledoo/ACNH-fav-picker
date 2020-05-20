@@ -400,7 +400,7 @@ var items = [
     {id: 'Kicks', personality: 'NPC', image: 'images/Kicks.png'},
     {id: 'Label', personality: 'NPC', image: 'images/Label.png'},
     {id: 'Leif', personality: 'NPC', image: 'images/Leif.png'},
-    {id: 'Lloyd', personality: 'NPC', image: 'images/Lloyd.png'},
+    {id: 'Lloid', personality: 'NPC', image: 'images/Lloid.png'},
     {id: 'Mabel', personality: 'NPC', image: 'images/Mabel.png'},
     {id: 'Redd', personality: 'NPC', image: 'images/Redd.png'},
     {id: 'Sable', personality: 'NPC', image: 'images/Sable.png'},
