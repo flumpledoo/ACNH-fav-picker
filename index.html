@@ -1,365 +1,376 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta name="viewport" content="initial-scale=1.0">
-<title>Favourite ACNH Villager Picker</title>
-<style>
-body {
-    background:#FFF;
-    color:#000;
-    font-family:verdana, sans-serif;
-    font-size:10pt;
-    margin:0;
-    padding:10px;
-}
-
-a:link, a:visited {
-    color:#008;
-    font-weight:bold;
-    text-decoration:none;
-}
-
-a:active, a:hover {
-    color:#ACF;
-}
-
-.info {
-    font-weight:bold;
-}
-
-button {
-    font-family:inherit;
-    cursor:pointer;
-    border:0;
-    border-radius:3px;
-    padding:0.3em 0.5em;
-    background:#CCC;
-    color:#000;
-}
-
-button:hover {
-    background:#DDD;
-}
-
-button.disabled {
-    background:#DDD;
-    color:#888;
-    cursor:not-allowed;
-}
-
-button.disabled:hover {
-    background:#DDD;
-}
-
-#container {
-    position:relative;
-    margin-left:-10px;
-    margin-right:-10px;
-    padding:10px;
-    overflow:hidden;
-}
-
-@media (min-width:1024px) {
-    /* Put the found favorites beside the picking div when the window is sufficiently large */
-    #picking {
-        float:left;
-        width:636px;
-    }
-
-    #secondary {
-        margin-left:646px;
-    }
-}
-
-@media (min-width:1300px) {
-    /* Once we get to the point where 636px is less than half of the width of the screen, make the picking div just take up half */
-    #picking {
-        width:50%;
-    }
-
-    #secondary {
-        margin-left:51%;
-    }
-}
-
-#pick {
-    background:#58F;
-    color:#FFF;
-    font-size:10pt;
-    font-weight:bold;
-    width:6em;
-    border-radius:5px;
-    margin-right:10px;
-}
-
-#pick.disabled {
-    background:#ACF;
-}
-
-#pick:hover {
-    background:#ACF;
-}
-
-.item-list {
-    padding:0;
-    list-style-type:none;
-    line-height:100px;
-}
-
-.item-list li {
-    margin:0;
-    display:inline-block;
-    height:100px;
-    width:100px;
-    line-height:100px;
-    border:3px solid transparent;
-    text-align:center;
-    position:relative;
-    vertical-align:top;
-    overflow:hidden;
-    border-radius:100%;
-    background:#F7F7F7;
-    color:#000;
-}
-
-.item-list li img {
-    vertical-align:middle;
-    max-height:100%;
-    max-width:100%;
-}
-
-.item-list li span {
-    display:inline-block;
-    vertical-align:middle;
-    line-height:1.2;
-}
-
-@media (max-width:636px) {
-    .item-list {
-        line-height:75px;
-    }
-
-    .item-list li {
-        line-height:75px;
-        height:75px;
-        width:75px;
-    }
-}
-
-@media (max-width:423px) {
-    .item-list {
-        line-height:50px;
-    }
-
-    .item-list li {
-        line-height:50px;
-        height:50px;
-        width:50px;
-    }
-}
-
-#reset {
-    border: red solid 1px;
-    color: red;
-}
-
-
-#evaluating li {
-    cursor:pointer;
-}
-
-#favorites li {
-    cursor:move;
-}
-
-.item-list li:hover {
-    background:#CDF;
-}
-
-.item-list.sorting li:hover {
-    background:#F7F7F7;
-}
-
-#evaluating li.selected {
-    border:3px solid #7AC;
-}
-
-#evaluating, #buttons {
-    text-align:left;
-    margin:auto;
-}
-
-#evaluating li.notice {
-    width:auto;
-    height:auto;
-    max-width:260px;
-    margin:auto;
-    background:#F7F7F7;
-    border-radius:14px;
-    padding:30px 30px;
-    color:#000;
-    text-align:center;
-    line-height:1.4;
-    cursor:auto;
-    font-size:6pt;
-}
-
-#buttons {
-    margin-top:30px;
-    position:relative;
-    z-index:3;
-}
-
-.picker-info {
-    text-align:center;
-    font-size:smaller;
-}
-
-#progress-bar {
-    display: block;
-    margin: auto;
-    height: 15px;
-    width: 150px;
-    margin-top: 5px;
-    background: #CCC;
-}
-
-#progress-bar span {
-    display: block;
-    height: 100%;
-    width: 0;
-    background: #58F;
-}
-</style>
-</head>
-<body>
-<h1>Favourite ACNH Villager Picker</h1>
-
-<p>:)</p>
-
-<div id="container">
-
-<div id="picking">
-<ul id="evaluating" class="item-list">
-</ul>
-
-<p id="buttons"><button id="pick">Pick</button> <button id="pass">Pass</button> <button id="undo">Undo</button> <button id="redo">Redo</button> <button id="reset">Reset</button></p>
-
-<div class="picker-info">
-    <p>Villagers remaining to be eliminated before next favorite is found: <span id="remaining"></span></p>
-
-    <p>Progress towards next favorite: <span id="progress-bar"><span></span></span></p>
-</div>
-
-</div>
-
-<div id="secondary">
-  <p>Include Personalities:
-    <label><input type="checkbox" name="personalitys" class="personalitys" value="Cranky"> Cranky</label>
-    <label><input type="checkbox" name="personalitys" class="personalitys" value="Peppy"> Peppy</label>
-    <label><input type="checkbox" name="personalitys" class="personalitys" value="Sisterly"> Sisterly</label>
-    <label><input type="checkbox" name="personalitys" class="personalitys" value="Lazy"> Lazy</label>
-    <label><input type="checkbox" name="personalitys" class="personalitys" value="Normal"> Normal</label>
-    <label><input type="checkbox" name="personalitys" class="personalitys" value="Snooty"> Snooty</label>
-    <label><input type="checkbox" name="personalitys" class="personalitys" value="Jock"> Jock</label>
-    <label><input type="checkbox" name="personalitys" class="personalitys" value="Smug"> Smug</label>
-  </p>
-  <p><label><input type="checkbox" name="personalitys" class="personalitys" value="NPC"> Include Special Characters</label>
-  <p>
-<h2>Found favorites</h2>
-
-<ol id="favorites" class="item-list">
-</ol>
-</div>
-</div>
-</div>
-<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-<script src="picker.js"></script>
-<script src="picker-ui.js"></script>
-<script src="items.js"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script> -->
-<script>
-'use strict';
-
-var myPicker = new picker.Picker({
-    items: items,
-    localStorageKey: 'acnh-state',
-    defaultSettings: {
-         personalitys: ['Cranky', 'Peppy', 'Sisterly', 'Lazy', 'Normal', 'Snooty', 'Jock', 'Smug']
-    },
-    shouldIncludeItem: function(item, settings) {
-         return settings.personalitys.indexOf(item.personality) !== -1;
-         // return true;
-    }
-});
-
-var pickerUI = new PickerUI(myPicker, {
-    elements: {
-        pick: "#pick",
-        pass: "#pass",
-        undo: "#undo",
-        redo: "#redo",
-        reset: '#reset',
-        evaluating: "#evaluating",
-        favorites: "#favorites",
-        settings: {
-            personalitys: '.personalitys'
+    <meta name="viewport" content="initial-scale=1.0">
+    <title>Favourite ACNH Villager Picker</title>
+    <style>
+        body {
+            background: #FFF;
+            color: #000;
+            font-family: verdana, sans-serif;
+            font-size: 10pt;
+            margin: 0;
+            padding: 10px;
         }
-    },
-    onUpdate: function(updateType) {
-        var total = this.picker.state.items.length;
-        var favorites = this.picker.state.arrays.favorites.length;
-        var eliminated = this.picker.state.arrays.eliminated.length;
-        var remaining = Math.max(0, total - favorites - eliminated - 1);
 
-        $("#remaining").text(remaining);
+        a:link,
+        a:visited {
+            color: #008;
+            font-weight: bold;
+            text-decoration: none;
+        }
 
-        updateProgressBar((1 - (remaining / this.picker.state.roundSize)) * 100, updateType);
-    }
-});
+        a:active,
+        a:hover {
+            color: #ACF;
+        }
 
-pickerUI.initialize();
+        .info {
+            font-weight: bold;
+        }
 
-/* PROGRESS BAR */
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: 0;
+            border-radius: 3px;
+            padding: 0.3em 0.5em;
+            background: #CCC;
+            color: #000;
+        }
 
-function updateProgressBar(value, updateType) {
-    var $progressBar = $("#progress-bar span");
+        button:hover {
+            background: #DDD;
+        }
 
-    if (['pick', 'undo', 'redo'].indexOf(updateType) !== -1) {
-        if (!value && updateType !== 'undo') {
-            $progressBar.animate({ width: '100%' }, 400, function () {
-                $progressBar.width(0);
-            });
-        } else {
-            if (!$progressBar.width() && updateType === 'undo') {
-                $progressBar.width("100%")
+        button.disabled {
+            background: #DDD;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        button.disabled:hover {
+            background: #DDD;
+        }
+
+        #container {
+            position: relative;
+            margin-left: -10px;
+            margin-right: -10px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        @media (min-width:1024px) {
+
+            /* Put the found favorites beside the picking div when the window is sufficiently large */
+            #picking {
+                float: left;
+                width: 636px;
             }
-            $progressBar.animate({ width: value + '%' }, 400);
+
+            #secondary {
+                margin-left: 646px;
+            }
         }
-    } else {
-        $progressBar.width(value + '%');
-    }
-}
 
-/* Sortable favorites - you can safely remove this, and the Sortable.min.js script, if you don't want to be able to sort your favorite list. */
-// var sortable = new Sortable(pickerUI.elem.favorites.get(0), {
-//     draggable: '.item',
-//     animation: 100,
-//     onStart: function() {
-//         pickerUI.elem.favorites.addClass("sorting");
-//     },
-//     onEnd: function() {
-//         pickerUI.elem.favorites.removeClass("sorting");
-//     },
-//     onUpdate: function() {
-//         myPicker.setFavorites(pickerUI.elem.favorites.children().map(function() {
-//             return pickerUI.getItem(this);
-//         }).get());
-//         pickerUI.update(true);
-//     }
-// });
-/* End sortable favorites */
+        @media (min-width:1300px) {
 
-</script>
+            /* Once we get to the point where 636px is less than half of the width of the screen, make the picking div just take up half */
+            #picking {
+                width: 50%;
+            }
+
+            #secondary {
+                margin-left: 51%;
+            }
+        }
+
+        #pick {
+            background: #58F;
+            color: #FFF;
+            font-size: 10pt;
+            font-weight: bold;
+            width: 6em;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #pick.disabled {
+            background: #ACF;
+        }
+
+        #pick:hover {
+            background: #ACF;
+        }
+
+        .item-list {
+            padding: 0;
+            list-style-type: none;
+            line-height: 100px;
+        }
+
+        .item-list li {
+            margin: 0;
+            display: inline-block;
+            height: 100px;
+            width: 100px;
+            line-height: 100px;
+            border: 3px solid transparent;
+            text-align: center;
+            position: relative;
+            vertical-align: top;
+            overflow: hidden;
+            border-radius: 100%;
+            background: #F7F7F7;
+            color: #000;
+        }
+
+        .item-list li img {
+            vertical-align: middle;
+            max-height: 100%;
+            max-width: 100%;
+        }
+
+        .item-list li span {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1.2;
+        }
+
+        @media (max-width:636px) {
+            .item-list {
+                line-height: 75px;
+            }
+
+            .item-list li {
+                line-height: 75px;
+                height: 75px;
+                width: 75px;
+            }
+        }
+
+        @media (max-width:423px) {
+            .item-list {
+                line-height: 50px;
+            }
+
+            .item-list li {
+                line-height: 50px;
+                height: 50px;
+                width: 50px;
+            }
+        }
+
+        #reset {
+            border: red solid 1px;
+            color: red;
+        }
+
+
+        #evaluating li {
+            cursor: pointer;
+        }
+
+        #favorites li {
+            cursor: move;
+        }
+
+        .item-list li:hover {
+            background: #CDF;
+        }
+
+        .item-list.sorting li:hover {
+            background: #F7F7F7;
+        }
+
+        #evaluating li.selected {
+            border: 3px solid #7AC;
+        }
+
+        #evaluating,
+        #buttons {
+            text-align: left;
+            margin: auto;
+        }
+
+        #evaluating li.notice {
+            width: auto;
+            height: auto;
+            max-width: 260px;
+            margin: auto;
+            background: #F7F7F7;
+            border-radius: 14px;
+            padding: 30px 30px;
+            color: #000;
+            text-align: center;
+            line-height: 1.4;
+            cursor: auto;
+            font-size: 6pt;
+        }
+
+        #buttons {
+            margin-top: 30px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .picker-info {
+            text-align: center;
+            font-size: smaller;
+        }
+
+        #progress-bar {
+            display: block;
+            margin: auto;
+            height: 15px;
+            width: 150px;
+            margin-top: 5px;
+            background: #CCC;
+        }
+
+        #progress-bar span {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: #58F;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Favourite ACNH Villager Picker</h1>
+
+    <p>:)</p>
+
+    <div id="container">
+
+        <div id="picking">
+            <ul id="evaluating" class="item-list">
+            </ul>
+
+            <p id="buttons"><button id="pick">Pick</button> <button id="pass">Pass</button> <button id="undo">Undo</button> <button id="redo">Redo</button> <button id="reset">Reset</button></p>
+
+            <div class="picker-info">
+                <p>Villagers remaining to be eliminated before next favorite is found: <span id="remaining"></span></p>
+
+                <p>Progress towards next favorite: <span id="progress-bar"><span></span></span></p>
+            </div>
+
+        </div>
+
+        <div id="secondary">
+            <p>Include Personalities:
+                <label><input type="checkbox" name="personalitys" class="personalitys" value="Cranky"> Cranky</label>
+                <label><input type="checkbox" name="personalitys" class="personalitys" value="Peppy"> Peppy</label>
+                <label><input type="checkbox" name="personalitys" class="personalitys" value="Sisterly"> Sisterly</label>
+                <label><input type="checkbox" name="personalitys" class="personalitys" value="Lazy"> Lazy</label>
+                <label><input type="checkbox" name="personalitys" class="personalitys" value="Normal"> Normal</label>
+                <label><input type="checkbox" name="personalitys" class="personalitys" value="Snooty"> Snooty</label>
+                <label><input type="checkbox" name="personalitys" class="personalitys" value="Jock"> Jock</label>
+                <label><input type="checkbox" name="personalitys" class="personalitys" value="Smug"> Smug</label>
+            </p>
+            <p><label><input type="checkbox" name="personalitys" class="personalitys" value="NPC"> Include Special Characters</label>
+            <p>
+            <h2>Found favorites</h2>
+
+            <ol id="favorites" class="item-list">
+            </ol>
+        </div>
+    </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="picker.js"></script>
+    <script src="picker-ui.js"></script>
+    <script src="items.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script> -->
+    <script>
+        'use strict';
+
+        var myPicker = new picker.Picker({
+            items: items,
+            localStorageKey: 'acnh-state',
+            defaultSettings: {
+                personalitys: ['Cranky', 'Peppy', 'Sisterly', 'Lazy', 'Normal', 'Snooty', 'Jock', 'Smug']
+            },
+            shouldIncludeItem: function(item, settings) {
+                return settings.personalitys.indexOf(item.personality) !== -1;
+                // return true;
+            }
+        });
+
+        var pickerUI = new PickerUI(myPicker, {
+            elements: {
+                pick: "#pick",
+                pass: "#pass",
+                undo: "#undo",
+                redo: "#redo",
+                reset: '#reset',
+                evaluating: "#evaluating",
+                favorites: "#favorites",
+                settings: {
+                    personalitys: '.personalitys'
+                }
+            },
+            onUpdate: function(updateType) {
+                var total = this.picker.state.items.length;
+                var favorites = this.picker.state.arrays.favorites.length;
+                var eliminated = this.picker.state.arrays.eliminated.length;
+                var remaining = Math.max(0, total - favorites - eliminated - 1);
+
+                $("#remaining").text(remaining);
+
+                updateProgressBar((1 - (remaining / this.picker.state.roundSize)) * 100, updateType);
+            }
+        });
+
+        pickerUI.initialize();
+
+        /* PROGRESS BAR */
+
+        function updateProgressBar(value, updateType) {
+            var $progressBar = $("#progress-bar span");
+
+            if (['pick', 'undo', 'redo'].indexOf(updateType) !== -1) {
+                if (!value && updateType !== 'undo') {
+                    $progressBar.animate({
+                        width: '100%'
+                    }, 400, function() {
+                        $progressBar.width(0);
+                    });
+                } else {
+                    if (!$progressBar.width() && updateType === 'undo') {
+                        $progressBar.width("100%")
+                    }
+                    $progressBar.animate({
+                        width: value + '%'
+                    }, 400);
+                }
+            } else {
+                $progressBar.width(value + '%');
+            }
+        }
+
+        /* Sortable favorites - you can safely remove this, and the Sortable.min.js script, if you don't want to be able to sort your favorite list. */
+        // var sortable = new Sortable(pickerUI.elem.favorites.get(0), {
+        //     draggable: '.item',
+        //     animation: 100,
+        //     onStart: function() {
+        //         pickerUI.elem.favorites.addClass("sorting");
+        //     },
+        //     onEnd: function() {
+        //         pickerUI.elem.favorites.removeClass("sorting");
+        //     },
+        //     onUpdate: function() {
+        //         myPicker.setFavorites(pickerUI.elem.favorites.children().map(function() {
+        //             return pickerUI.getItem(this);
+        //         }).get());
+        //         pickerUI.update(true);
+        //     }
+        // });
+        /* End sortable favorites */
+    </script>
 </body>
+
 </html>

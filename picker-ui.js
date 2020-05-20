@@ -1,6 +1,6 @@
 'use strict';
 
-(function (root, factory) {
+(function(root, factory) {
     if (typeof define === 'function' && define.amd) {
         define(['jquery'], factory);
     } else if (typeof module === 'object' && module.exports) {
@@ -8,7 +8,7 @@
     } else {
         root.PickerUI = factory(root.jQuery);
     }
-}(typeof self !== 'undefined' ? self : this, function ($) {
+}(typeof self !== 'undefined' ? self : this, function($) {
     function PickerUI(picker, options) {
         var self = this;
 
@@ -69,8 +69,7 @@
             var selected = self.getSelected();
             if (selected.length === 0) {
                 alert(this.messages.mustSelect);
-            }
-            else {
+            } else {
                 self.pick(selected);
             }
         });
@@ -100,7 +99,9 @@
         if (this.elem.sharedListContinue) {
             this.elem.sharedListContinue.on('click', function(e) {
                 e.preventDefault();
-                self.picker.resetToFavorites($.map(self.picker.getSharedFavorites(), function(item) { return item.id; }));
+                self.picker.resetToFavorites($.map(self.picker.getSharedFavorites(), function(item) {
+                    return item.id;
+                }));
                 console.log(self.picker.getSettings());
                 self.setSettings(self.picker.getSettings());
                 self.update(true, 'continue');
@@ -120,8 +121,7 @@
             for (var key in obj) {
                 if (key === 'settings') {
                     result[key] = jquerify(obj[key]);
-                }
-                else if (obj.hasOwnProperty(key)) {
+                } else if (obj.hasOwnProperty(key)) {
                     result[key] = $(obj[key]);
                 }
             }
@@ -157,9 +157,8 @@
         if (type === 'checkbox' || type === 'radio') {
             if ($elem.length === 1) {
                 return $elem.prop("checked");
-            }
-            else {
-                values = $.makeArray($elem.filter(":checked").map(function () {
+            } else {
+                values = $.makeArray($elem.filter(":checked").map(function() {
                     var value = this.value;
                     if ($(this).hasClass("setting-number")) {
                         value *= 1;
@@ -172,8 +171,7 @@
                     return values[0];
                 }
             }
-        }
-        else {
+        } else {
             value = $elem.val();
             if (type === 'number' || $(this).hasClass("setting-number")) {
                 value *= 1;
@@ -189,9 +187,8 @@
         if (type === 'checkbox' || type === 'radio') {
             if ($elem.length === 1) {
                 $elem.prop("checked", value);
-            }
-            else {
-                $elem.each(function () {
+            } else {
+                $elem.each(function() {
                     var val = this.value;
                     if ($(this).hasClass("setting-number")) {
                         val *= 1;
@@ -199,8 +196,7 @@
                     $(this).prop("checked", $.isArray(value) ? value.indexOf(val) !== -1 : value === val);
                 });
             }
-        }
-        else {
+        } else {
             if (type === 'number' || $(this).hasClass("setting-number")) {
                 value *= 1;
             }
@@ -268,11 +264,14 @@
 
         if (quick) {
             func();
-        }
-        else {
-            this.elem.evaluating.animate({opacity: 0}, 'fast', function() {
+        } else {
+            this.elem.evaluating.animate({
+                opacity: 0
+            }, 'fast', function() {
                 func();
-                self.elem.evaluating.animate({opacity: 1}, 'fast');
+                self.elem.evaluating.animate({
+                    opacity: 1
+                }, 'fast');
             });
         }
     };
@@ -345,8 +344,7 @@
         this.display(function() {
             if (self.picker.getEvaluating().length === 0) {
                 self.displayEmpty();
-            }
-            else {
+            } else {
                 self.displayBatch()
             }
             self.updateFavorites();
@@ -473,8 +471,7 @@
         }
         if (item.image || this.options.getItemImageUrl) {
             itemContent = $('<img src="' + (this.options.getItemImageUrl ? this.options.getItemImageUrl(item, settings) : item.image) + '" alt="' + itemName + '" title="' + itemName + '">');
-        }
-        else {
+        } else {
             itemContent = $('<span>' + itemName + '</span>');
         }
         return this.wrapItem(itemContent).addClass('item').data('item', item.id);

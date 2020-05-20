@@ -1,6 +1,6 @@
 'use strict';
 
-(function (root, factory) {
+(function(root, factory) {
     if (typeof define === 'function' && define.amd) {
         define([], factory);
     } else if (typeof module === 'object' && module.exports) {
@@ -8,13 +8,13 @@
     } else {
         root.picker = factory();
     }
-}(typeof self !== 'undefined' ? self : this, function () {
+}(typeof self !== 'undefined' ? self : this, function() {
     /* POLYFILLS */
 
     if (!Array.isArray) {
-      Array.isArray = function(arg) {
-        return Object.prototype.toString.call(arg) === '[object Array]';
-      };
+        Array.isArray = function(arg) {
+            return Object.prototype.toString.call(arg) === '[object Array]';
+        };
     }
 
     /* PICKER STATE OBJECT */
@@ -165,8 +165,7 @@
          */
         if (this.options.getFilteredItems) {
             return this.options.getFilteredItems(settings).indexOf(identifier) !== -1;
-        }
-        else if (this.options.shouldIncludeItem) {
+        } else if (this.options.shouldIncludeItem) {
             return this.options.shouldIncludeItem(identifier, settings);
         }
         return true;
@@ -198,8 +197,7 @@
         var index = this.findByIdentifier(identifier, this.arrays[arrayName]);
         if (index !== -1) {
             return this.arrays[arrayName][index];
-        }
-        else {
+        } else {
             return null;
         }
     };
@@ -228,7 +226,7 @@
 
     /* STATE VALIDATION */
 
-    PickerState.prototype.validate = function () {
+    PickerState.prototype.validate = function() {
         /**
          * Validates and corrects the state.
          */
@@ -273,8 +271,7 @@
                         this.removeFromEliminated(identifier);
                     }
                     verifyObject[identifier] = true;
-                }
-                else {
+                } else {
                     // This is an unexpected item - we want to remove it
                     arrays[i].splice(j, 1);
                     extraItems.push(identifier);
@@ -323,8 +320,7 @@
         if (evaluating.length < 2) {
             // Give us an evaluation batch of the size that it should be.
             this.resetBatchSize();
-        }
-        else {
+        } else {
             this.batchSize = evaluating.length;
         }
     };
@@ -348,11 +344,13 @@
                 // This item is one of the ones we picked - add it to
                 // survived
                 survived.push(evaluating[i]);
-            }
-            else {
+            } else {
                 // This item is not one of the ones we picked - add it to
                 // eliminated, with the picked items as the eliminators
-                eliminated.push({id: evaluating[i], eliminatedBy: picked.slice(0)});
+                eliminated.push({
+                    id: evaluating[i],
+                    eliminatedBy: picked.slice(0)
+                });
             }
         }
         this.arrays.evaluating = [];
@@ -496,11 +494,11 @@
         /* PICKER INITIALIZATION */
 
         var pickerStateOptions = {
-            items: map(options.items, function (item) {
+            items: map(options.items, function(item) {
                 return item.id;
             }),
             getBatchSize: options.getBatchSize,
-            shouldIncludeItem: options.shouldIncludeItem && function (identifier, settings) {
+            shouldIncludeItem: options.shouldIncludeItem && function(identifier, settings) {
                 return options.shouldIncludeItem(self.itemMap[identifier], settings)
             },
             getFilteredItems: options.getFilteredItems,
@@ -531,8 +529,7 @@
                 );
             }
             this.pushHistory();
-        }
-        else {
+        } else {
             this.state.initialize(defaultSettings);
             this.pushHistory();
         }
@@ -610,7 +607,7 @@
         var shortcodeMap = {};
         var favoriteMap = {};
 
-        this.forEachItem(function (identifier) {
+        this.forEachItem(function(identifier) {
             shortcodeMap[self.itemMap[identifier].shortcode] = identifier;
         });
 
@@ -676,7 +673,7 @@
         this.saveState();
     };
 
-    Picker.prototype.resetToFavorites = function (favorites, useSettings) {
+    Picker.prototype.resetToFavorites = function(favorites, useSettings) {
         /**
          * Creates a clean state with the items given in favorites (as
          * identifiers) as found favorites.
@@ -689,7 +686,7 @@
         var finalFavorites = [];
         var i;
 
-        for (i = 0; i < favorites.length; i ++) {
+        for (i = 0; i < favorites.length; i++) {
             // Only add the item if it matches the settings (or if we don't have any given settings)
             if (!useSettings || this.state.shouldIncludeItem(favorites[i], useSettings)) {
                 finalFavorites.push(favorites[i]);
@@ -700,8 +697,7 @@
             // If we don't have any given settings, then set the settings according to the favorites instead
             if (this.options.settingsFromFavorites) {
                 useSettings = copyObject(this.options.defaultSettings, this.options.settingsFromFavorites(this.mapItems(favorites)));
-            }
-            else {
+            } else {
                 useSettings = copyObject(this.options.defaultSettings);
             }
         }
@@ -721,8 +717,7 @@
          */
         if (this.options.saveState) {
             this.options.saveState.call(this, this.state.getState());
-        }
-        else if (localStorage && JSON && this.options.localStorageKey) {
+        } else if (localStorage && JSON && this.options.localStorageKey) {
             localStorage.setItem(this.options.localStorageKey, JSON.stringify(this.state.getState()));
         }
     };
@@ -734,8 +729,7 @@
         var state;
         if (this.options.loadState) {
             state = this.options.loadState.call(this);
-        }
-        else if (localStorage && JSON && this.options.localStorageKey) {
+        } else if (localStorage && JSON && this.options.localStorageKey) {
             try {
                 state = JSON.parse(localStorage.getItem(this.options.localStorageKey));
             } catch (e) {
@@ -873,12 +867,10 @@
             if (array[i] && typeof array[i] === 'object') {
                 if (Array.isArray(array[i])) {
                     result[i] = copyArray(array[i]);
-                }
-                else {
+                } else {
                     result[i] = copyObject(array[i]);
                 }
-            }
-            else {
+            } else {
                 result[i] = array[i];
             }
         }
@@ -899,12 +891,10 @@
                     if (arguments[a][key] && typeof arguments[a][key] === 'object') {
                         if (Array.isArray(arguments[a][key])) {
                             result[key] = copyArray(arguments[a][key]);
-                        }
-                        else {
+                        } else {
                             result[key] = copyObject(arguments[a][key]);
                         }
-                    }
-                    else {
+                    } else {
                         result[key] = arguments[a][key];
                     }
                 }
@@ -930,7 +920,8 @@
         /**
          * Shuffles the given array to be in a random order.
          */
-        var currentIndex = array.length, temporaryValue, randomIndex;
+        var currentIndex = array.length,
+            temporaryValue, randomIndex;
 
         while (0 !== currentIndex) {
             randomIndex = Math.floor(Math.random() * currentIndex);
